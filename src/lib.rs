@@ -24,8 +24,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 /// `RustcVersion` represents a version of the Rust Compiler.
 ///
-/// This struct only supports the version format
-/// ```ignore
+/// This struct only supports the [`NormalVersion`] format
+/// ```text
 /// major.minor.patch
 /// ```
 /// and 3 special formats represented by the [`SpecialVersion`] enum.
@@ -35,8 +35,22 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// normal version format.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum RustcVersion {
-    Normal { major: u32, minor: u32, patch: u32 },
+    Normal(NormalVersion),
     Special(SpecialVersion),
+}
+
+/// `NormalVersion` represents a normal version used for all releases since
+/// Rust 1.0.0.
+///
+/// This struct supports versions in the format
+/// ```test
+/// major.minor.patch
+/// ```
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub struct NormalVersion {
+    major: u32,
+    minor: u32,
+    patch: u32,
 }
 
 /// `SpecialVersion` represents a special version from the first releases.
@@ -65,16 +79,16 @@ impl Ord for RustcVersion {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
             (
-                Self::Normal {
+                Self::Normal(NormalVersion {
                     major,
                     minor,
                     patch,
-                },
-                Self::Normal {
+                }),
+                Self::Normal(NormalVersion {
                     major: o_major,
                     minor: o_minor,
                     patch: o_patch,
-                },
+                }),
             ) => match major.cmp(&o_major) {
                 Ordering::Equal => match minor.cmp(&o_minor) {
                     Ordering::Equal => patch.cmp(&o_patch),
@@ -82,14 +96,14 @@ impl Ord for RustcVersion {
                 },
                 ord => ord,
             },
-            (Self::Normal { major, .. }, Self::Special(_)) => {
+            (Self::Normal(NormalVersion { major, .. }), Self::Special(_)) => {
                 if *major >= 1 {
                     Ordering::Greater
                 } else {
                     Ordering::Less
                 }
             }
-            (Self::Special(_), Self::Normal { major, .. }) => {
+            (Self::Special(_), Self::Normal(NormalVersion { major, .. })) => {
                 if *major >= 1 {
                     Ordering::Less
                 } else {
@@ -122,11 +136,11 @@ impl Ord for SpecialVersion {
 impl Display for RustcVersion {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Normal {
+            Self::Normal(NormalVersion {
                 major,
                 minor,
                 patch,
-            } => write!(f, "{}.{}.{}", major, minor, patch)?,
+            }) => write!(f, "{}.{}.{}", major, minor, patch)?,
             Self::Special(special) => write!(f, "{}", special)?,
         }
 
@@ -153,11 +167,11 @@ impl TryFrom<[u32; 3]> for RustcVersion {
         if vec.len() > 3 {
             Err(Error::TooManyElements)
         } else {
-            Ok(Self::Normal {
+            Ok(Self::Normal(NormalVersion {
                 major: vec.get(0).copied().unwrap_or_default(),
                 minor: vec.get(1).copied().unwrap_or_default(),
                 patch: vec.get(2).copied().unwrap_or_default(),
-            })
+            }))
         }
     }
 }
@@ -187,11 +201,11 @@ impl RustcVersion {
     /// assert!(MY_FAVORITE_RUST > RustcVersion::new(1, 0, 0))
     /// ```
     pub const fn new(major: u32, minor: u32, patch: u32) -> Self {
-        Self::Normal {
+        Self::Normal(NormalVersion {
             major,
             minor,
             patch,
-        }
+        })
     }
 
     /// `RustcVersion::parse` parses a [`RustcVersion`].
