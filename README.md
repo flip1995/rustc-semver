@@ -1,30 +1,38 @@
-# {PROJECT_NAME}
+# Rust Version
 
-_Make sure to adapt the Copyright lines in the LICENSE-* files and the E-Mail in
-the Code of Conduct_
-
-{Short Description}
+This crate provides a parser for Rust versions.
 
 ## Description
 
-{Detailed description}
+The parser will only accept Versions in the form
+```
+<major>.<minor>.<patch>
+```
+and 3 special versions:
 
-## Setup
-
-{Requirements and install instructions}
+- `1.0.0-alpha`
+- `1.0.0-alpha.2`
+- `1.0.0-beta`
 
 ## Usage
 
-{Usage instructions}
+There are only 2 functions to create a `RustVersion`:
+
+1. `const RustVersion::new(u32, u32, u32)`: This is mainly used to create
+   constants
+2. `RustVersion::parse(&str)`: Usually you want to parse a version with this
+   function
+
+If you have a `RustVersion` you can compare them, like you would expect:
+
+```
+assert!(RustVersion::parse("1.42.0")? < RustVersion::parse("1.43")?);
+```
 
 ## Code of Conduct
 
 This repository adopts the [Contributor Covenant Code of
 Conduct](https://www.contributor-covenant.org/version/1/4/code-of-conduct/)
-
-## Contributing
-
-{Contribution instructions}
 
 ## License
 
