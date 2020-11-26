@@ -222,5 +222,67 @@ mod test {
             RustVersion::parse("1.0.0beta"),
             Err(Error::NotASpecialVersion)
         );
+        assert_eq!(
+            RustVersion::parse("1.1.0-beta"),
+            Err(Error::NotASpecialVersion)
+        );
+    }
+
+    #[test]
+    fn less_than() {
+        let bigger = RustVersion::new(1, 30, 1);
+        assert!(RustVersion::parse("1.0.0").unwrap() < bigger);
+        assert!(RustVersion::parse("1.0").unwrap() < bigger);
+        assert!(RustVersion::parse("1").unwrap() < bigger);
+        assert!(RustVersion::parse("1.30").unwrap() < bigger);
+        assert!(RustVersion::parse("1.0.0-beta").unwrap() < bigger);
+        assert!(RustVersion::parse("0.9").unwrap() < RustVersion::Special(SpecialVersion::Alpha));
+        assert!(
+            RustVersion::parse("1.0.0-alpha").unwrap()
+                < RustVersion::Special(SpecialVersion::Alpha2)
+        );
+        assert!(
+            RustVersion::parse("1.0.0-alpha").unwrap() < RustVersion::Special(SpecialVersion::Beta)
+        );
+        assert!(
+            RustVersion::parse("1.0.0-alpha.2").unwrap()
+                < RustVersion::Special(SpecialVersion::Beta)
+        );
+    }
+
+    #[test]
+    fn equal() {
+        assert_eq!(
+            RustVersion::parse("1.22.0").unwrap(),
+            RustVersion::new(1, 22, 0)
+        );
+        assert_eq!(
+            RustVersion::parse("1.22").unwrap(),
+            RustVersion::new(1, 22, 0)
+        );
+        assert_eq!(
+            RustVersion::parse("1.48.1").unwrap(),
+            RustVersion::new(1, 48, 1)
+        );
+    }
+
+    #[test]
+    fn greater_than() {
+        let less = RustVersion::new(1, 15, 1);
+        assert!(RustVersion::parse("1.16.0").unwrap() > less);
+        assert!(RustVersion::parse("1.16").unwrap() > less);
+        assert!(RustVersion::parse("2").unwrap() > less);
+        assert!(RustVersion::parse("1.15.2").unwrap() > less);
+        assert!(
+            RustVersion::parse("1.0.0-beta").unwrap()
+                > RustVersion::Special(SpecialVersion::Alpha2)
+        );
+        assert!(
+            RustVersion::parse("1.0.0-beta").unwrap() > RustVersion::Special(SpecialVersion::Alpha)
+        );
+        assert!(
+            RustVersion::parse("1.0.0-alpha.2").unwrap()
+                > RustVersion::Special(SpecialVersion::Alpha)
+        );
     }
 }
