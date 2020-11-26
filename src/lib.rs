@@ -14,7 +14,7 @@ impl From<ParseIntError> for Error {
     }
 }
 
-type Result<T> = core::result::Result<T, Error>;
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum RustVersion {
@@ -165,6 +165,10 @@ impl RustVersion {
 
         let mut rust_version = [0_u32; 3];
         for (i, part) in version.split('.').enumerate() {
+            let part = part.trim();
+            if part.is_empty() {
+                break;
+            }
             if i == 3 {
                 return Err(Error::TooManyElements);
             }
@@ -283,6 +287,17 @@ mod test {
         assert!(
             RustVersion::parse("1.0.0-alpha.2").unwrap()
                 > RustVersion::Special(SpecialVersion::Alpha)
+        );
+    }
+
+    #[test]
+    fn edge_cases() {
+        assert_eq!(RustVersion::parse("").unwrap(), RustVersion::new(0, 0, 0));
+        assert_eq!(RustVersion::parse(" ").unwrap(), RustVersion::new(0, 0, 0));
+        assert_eq!(RustVersion::parse("\t").unwrap(), RustVersion::new(0, 0, 0));
+        assert_eq!(
+            RustVersion::parse(" 1  . \t 3.\r 5").unwrap(),
+            RustVersion::new(1, 3, 5)
         );
     }
 }
