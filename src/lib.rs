@@ -1,13 +1,13 @@
 #![no_std]
 use core::{cmp::Ordering, convert::TryFrom, fmt::Display, num::ParseIntError};
 
-/// `Error` represents an Error during parsing of a [`RustVersion`].
+/// `Error` represents an Error during parsing of a [`RustcVersion`].
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
     /// A version was passed that has too many elements seperated by `'.'`.
     TooManyElements,
-    /// A version was passed that neither is a [`SpecialVersion`], nor a normal
-    /// version.
+    /// A version was passed that neither is a [`SpecialVersion`], nor a
+    /// normal [`RustcVersion`].
     NotASpecialVersion,
     /// A version was passed that has unallowed chracters.
     ParseIntError,
@@ -22,7 +22,7 @@ impl From<ParseIntError> for Error {
 /// Result type for this crate
 pub type Result<T> = core::result::Result<T, Error>;
 
-/// `RustVersion` represents a version of the Rust Compiler.
+/// `RustcVersion` represents a version of the Rust Compiler.
 ///
 /// This struct only supports the version format
 /// ```ignore
@@ -30,11 +30,11 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// ```
 /// and 3 special formats represented by the [`SpecialVersion`] enum.
 ///
-/// A version can be created with one of the methods [`RustVersion::new`] or
-/// [`RustVersion::parse`]. The [`RustVersion::new`] method only supports the
+/// A version can be created with one of the functions [`RustcVersion::new`] or
+/// [`RustcVersion::parse`]. The [`RustcVersion::new`] method only supports the
 /// normal version format.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub enum RustVersion {
+pub enum RustcVersion {
     Normal { major: u32, minor: u32, patch: u32 },
     Special(SpecialVersion),
 }
@@ -55,13 +55,13 @@ pub enum SpecialVersion {
     Beta,
 }
 
-impl PartialOrd for RustVersion {
+impl PartialOrd for RustcVersion {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for RustVersion {
+impl Ord for RustcVersion {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
             (
@@ -119,7 +119,7 @@ impl Ord for SpecialVersion {
     }
 }
 
-impl Display for RustVersion {
+impl Display for RustcVersion {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Normal {
@@ -146,7 +146,7 @@ impl Display for SpecialVersion {
     }
 }
 
-impl TryFrom<[u32; 3]> for RustVersion {
+impl TryFrom<[u32; 3]> for RustcVersion {
     type Error = Error;
 
     fn try_from(vec: [u32; 3]) -> Result<Self> {
@@ -168,11 +168,11 @@ const ACCEPTED_SPECIAL_VERSIONS: [(&str, SpecialVersion); 3] = [
     ("1.0.0-beta", SpecialVersion::Beta),
 ];
 
-impl RustVersion {
-    /// `RustVersion::new` is a `const` constructor for a `RustVersion`.
+impl RustcVersion {
+    /// `RustcVersion::new` is a `const` constructor for a `RustcVersion`.
     ///
     /// This function is primarily used to construct constants, for everything
-    /// else use [`RustVersion::parse`].
+    /// else use [`RustcVersion::parse`].
     ///
     /// This function only allows to construct normal versions. For special
     /// versions, construct them directly from the [`SpecialVersion`] enum.
@@ -180,11 +180,11 @@ impl RustVersion {
     /// # Examples
     ///
     /// ```rust
-    /// use rust_version::RustVersion;
+    /// use rustc_semver::RustcVersion;
     ///
-    /// const MY_FAVORITE_RUST: RustVersion = RustVersion::new(1, 48, 0);
+    /// const MY_FAVORITE_RUST: RustcVersion = RustcVersion::new(1, 48, 0);
     ///
-    /// assert!(MY_FAVORITE_RUST > RustVersion::new(1, 0, 0))
+    /// assert!(MY_FAVORITE_RUST > RustcVersion::new(1, 0, 0))
     /// ```
     pub const fn new(major: u32, minor: u32, patch: u32) -> Self {
         Self::Normal {
@@ -194,7 +194,7 @@ impl RustVersion {
         }
     }
 
-    /// `RustVersion::parse` parses a [`RustVersion`].
+    /// `RustcVersion::parse` parses a [`RustcVersion`].
     ///
     /// This function can parse all normal and special versions. It is possbile
     /// to omit parts of the version, like the patch or minor version part. So
@@ -204,21 +204,21 @@ impl RustVersion {
     /// # Errors
     ///
     /// This function returns an [`Error`], if the passed string is not a valid
-    /// [`RustVersion`]
+    /// [`RustcVersion`]
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rust_version::{SpecialVersion, RustVersion};
+    /// use rustc_semver::{SpecialVersion, RustcVersion};
     ///
-    /// let ver = RustVersion::new(1, 0, 0);
+    /// let ver = RustcVersion::new(1, 0, 0);
     ///
-    /// assert_eq!(RustVersion::parse("1").unwrap(), ver);
-    /// assert_eq!(RustVersion::parse("1.0").unwrap(), ver);
-    /// assert_eq!(RustVersion::parse("1.0.0").unwrap(), ver);
+    /// assert_eq!(RustcVersion::parse("1").unwrap(), ver);
+    /// assert_eq!(RustcVersion::parse("1.0").unwrap(), ver);
+    /// assert_eq!(RustcVersion::parse("1.0.0").unwrap(), ver);
     /// assert_eq!(
-    ///     RustVersion::parse("1.0.0-alpha").unwrap(),
-    ///     RustVersion::Special(SpecialVersion::Alpha)
+    ///     RustcVersion::parse("1.0.0-alpha").unwrap(),
+    ///     RustcVersion::Special(SpecialVersion::Alpha)
     /// );
     /// ```
     pub fn parse(version: &str) -> Result<Self> {
@@ -230,10 +230,10 @@ impl RustVersion {
             }
         });
         if let Some(special_version) = special_version {
-            return Ok(RustVersion::Special(special_version));
+            return Ok(RustcVersion::Special(special_version));
         }
 
-        let mut rust_version = [0_u32; 3];
+        let mut rustc_version = [0_u32; 3];
         for (i, part) in version.split('.').enumerate() {
             let part = part.trim();
             if part.is_empty() {
@@ -243,7 +243,7 @@ impl RustVersion {
                 return Err(Error::TooManyElements);
             }
             match str::parse(part) {
-                Ok(part) => rust_version[i] = part,
+                Ok(part) => rustc_version[i] = part,
                 Err(e) => {
                     if i == 2 {
                         return Err(Error::NotASpecialVersion);
@@ -253,7 +253,7 @@ impl RustVersion {
                 }
             }
         }
-        RustVersion::try_from(rust_version)
+        RustcVersion::try_from(rustc_version)
     }
 }
 
@@ -264,110 +264,121 @@ mod test {
     #[test]
     fn omitted_parts() {
         assert_eq!(
-            RustVersion::parse("1.0.0").unwrap(),
-            RustVersion::new(1, 0, 0)
+            RustcVersion::parse("1.0.0").unwrap(),
+            RustcVersion::new(1, 0, 0)
         );
         assert_eq!(
-            RustVersion::parse("1.0").unwrap(),
-            RustVersion::new(1, 0, 0)
+            RustcVersion::parse("1.0").unwrap(),
+            RustcVersion::new(1, 0, 0)
         );
-        assert_eq!(RustVersion::parse("1").unwrap(), RustVersion::new(1, 0, 0));
+        assert_eq!(
+            RustcVersion::parse("1").unwrap(),
+            RustcVersion::new(1, 0, 0)
+        );
     }
 
     #[test]
     fn special_versions() {
         assert_eq!(
-            RustVersion::parse("1.0.0-alpha").unwrap(),
-            RustVersion::Special(SpecialVersion::Alpha)
+            RustcVersion::parse("1.0.0-alpha").unwrap(),
+            RustcVersion::Special(SpecialVersion::Alpha)
         );
         assert_eq!(
-            RustVersion::parse("1.0.0-alpha.2").unwrap(),
-            RustVersion::Special(SpecialVersion::Alpha2)
+            RustcVersion::parse("1.0.0-alpha.2").unwrap(),
+            RustcVersion::Special(SpecialVersion::Alpha2)
         );
         assert_eq!(
-            RustVersion::parse("1.0.0-beta").unwrap(),
-            RustVersion::Special(SpecialVersion::Beta)
+            RustcVersion::parse("1.0.0-beta").unwrap(),
+            RustcVersion::Special(SpecialVersion::Beta)
         );
         assert_eq!(
-            RustVersion::parse("1.0.0-sigma"),
+            RustcVersion::parse("1.0.0-sigma"),
             Err(Error::NotASpecialVersion)
         );
         assert_eq!(
-            RustVersion::parse("1.0.0beta"),
+            RustcVersion::parse("1.0.0beta"),
             Err(Error::NotASpecialVersion)
         );
         assert_eq!(
-            RustVersion::parse("1.1.0-beta"),
+            RustcVersion::parse("1.1.0-beta"),
             Err(Error::NotASpecialVersion)
         );
     }
 
     #[test]
     fn less_than() {
-        let bigger = RustVersion::new(1, 30, 1);
-        assert!(RustVersion::parse("1.0.0").unwrap() < bigger);
-        assert!(RustVersion::parse("1.0").unwrap() < bigger);
-        assert!(RustVersion::parse("1").unwrap() < bigger);
-        assert!(RustVersion::parse("1.30").unwrap() < bigger);
-        assert!(RustVersion::parse("1.0.0-beta").unwrap() < bigger);
-        assert!(RustVersion::parse("0.9").unwrap() < RustVersion::Special(SpecialVersion::Alpha));
+        let bigger = RustcVersion::new(1, 30, 1);
+        assert!(RustcVersion::parse("1.0.0").unwrap() < bigger);
+        assert!(RustcVersion::parse("1.0").unwrap() < bigger);
+        assert!(RustcVersion::parse("1").unwrap() < bigger);
+        assert!(RustcVersion::parse("1.30").unwrap() < bigger);
+        assert!(RustcVersion::parse("1.0.0-beta").unwrap() < bigger);
+        assert!(RustcVersion::parse("0.9").unwrap() < RustcVersion::Special(SpecialVersion::Alpha));
         assert!(
-            RustVersion::parse("1.0.0-alpha").unwrap()
-                < RustVersion::Special(SpecialVersion::Alpha2)
+            RustcVersion::parse("1.0.0-alpha").unwrap()
+                < RustcVersion::Special(SpecialVersion::Alpha2)
         );
         assert!(
-            RustVersion::parse("1.0.0-alpha").unwrap() < RustVersion::Special(SpecialVersion::Beta)
+            RustcVersion::parse("1.0.0-alpha").unwrap()
+                < RustcVersion::Special(SpecialVersion::Beta)
         );
         assert!(
-            RustVersion::parse("1.0.0-alpha.2").unwrap()
-                < RustVersion::Special(SpecialVersion::Beta)
+            RustcVersion::parse("1.0.0-alpha.2").unwrap()
+                < RustcVersion::Special(SpecialVersion::Beta)
         );
     }
 
     #[test]
     fn equal() {
         assert_eq!(
-            RustVersion::parse("1.22.0").unwrap(),
-            RustVersion::new(1, 22, 0)
+            RustcVersion::parse("1.22.0").unwrap(),
+            RustcVersion::new(1, 22, 0)
         );
         assert_eq!(
-            RustVersion::parse("1.22").unwrap(),
-            RustVersion::new(1, 22, 0)
+            RustcVersion::parse("1.22").unwrap(),
+            RustcVersion::new(1, 22, 0)
         );
         assert_eq!(
-            RustVersion::parse("1.48.1").unwrap(),
-            RustVersion::new(1, 48, 1)
+            RustcVersion::parse("1.48.1").unwrap(),
+            RustcVersion::new(1, 48, 1)
         );
     }
 
     #[test]
     fn greater_than() {
-        let less = RustVersion::new(1, 15, 1);
-        assert!(RustVersion::parse("1.16.0").unwrap() > less);
-        assert!(RustVersion::parse("1.16").unwrap() > less);
-        assert!(RustVersion::parse("2").unwrap() > less);
-        assert!(RustVersion::parse("1.15.2").unwrap() > less);
+        let less = RustcVersion::new(1, 15, 1);
+        assert!(RustcVersion::parse("1.16.0").unwrap() > less);
+        assert!(RustcVersion::parse("1.16").unwrap() > less);
+        assert!(RustcVersion::parse("2").unwrap() > less);
+        assert!(RustcVersion::parse("1.15.2").unwrap() > less);
         assert!(
-            RustVersion::parse("1.0.0-beta").unwrap()
-                > RustVersion::Special(SpecialVersion::Alpha2)
+            RustcVersion::parse("1.0.0-beta").unwrap()
+                > RustcVersion::Special(SpecialVersion::Alpha2)
         );
         assert!(
-            RustVersion::parse("1.0.0-beta").unwrap() > RustVersion::Special(SpecialVersion::Alpha)
+            RustcVersion::parse("1.0.0-beta").unwrap()
+                > RustcVersion::Special(SpecialVersion::Alpha)
         );
         assert!(
-            RustVersion::parse("1.0.0-alpha.2").unwrap()
-                > RustVersion::Special(SpecialVersion::Alpha)
+            RustcVersion::parse("1.0.0-alpha.2").unwrap()
+                > RustcVersion::Special(SpecialVersion::Alpha)
         );
     }
 
     #[test]
     fn edge_cases() {
-        assert_eq!(RustVersion::parse("").unwrap(), RustVersion::new(0, 0, 0));
-        assert_eq!(RustVersion::parse(" ").unwrap(), RustVersion::new(0, 0, 0));
-        assert_eq!(RustVersion::parse("\t").unwrap(), RustVersion::new(0, 0, 0));
+        assert_eq!(RustcVersion::parse("").unwrap(), RustcVersion::new(0, 0, 0));
         assert_eq!(
-            RustVersion::parse(" 1  . \t 3.\r 5").unwrap(),
-            RustVersion::new(1, 3, 5)
+            RustcVersion::parse(" ").unwrap(),
+            RustcVersion::new(0, 0, 0)
+        );
+        assert_eq!(
+            RustcVersion::parse("\t").unwrap(),
+            RustcVersion::new(0, 0, 0)
+        );
+        assert_eq!(
+            RustcVersion::parse(" 1  . \t 3.\r 5").unwrap(),
+            RustcVersion::new(1, 3, 5)
         );
     }
 }

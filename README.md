@@ -1,4 +1,4 @@
-# Rust Version
+# Rustc Semver
 
 This crate provides a parser for Rust versions.
 

@@ -1,5 +1,5 @@
 [package]
-name = "rust_version"
+name = "rustc-semver"
 version = "0.1.0"
 authors = ["flip1995 <hello@philkrones.com>"]
 edition = "2018"
