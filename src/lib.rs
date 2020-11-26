@@ -1,10 +1,15 @@
 #![no_std]
 use core::{cmp::Ordering, convert::TryFrom, fmt::Display, num::ParseIntError};
 
+/// `Error` represents an Error during parsing of a [`RustVersion`].
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
+    /// A version was passed that has too many elements seperated by `'.'`.
     TooManyElements,
+    /// A version was passed that neither is a [`SpecialVersion`], nor a normal
+    /// version.
     NotASpecialVersion,
+    /// A version was passed that has unallowed chracters.
     ParseIntError,
 }
 
@@ -14,14 +19,35 @@ impl From<ParseIntError> for Error {
     }
 }
 
+/// Result type for this crate
 pub type Result<T> = core::result::Result<T, Error>;
 
+/// `RustVersion` represents a version of the Rust Compiler.
+///
+/// This struct only supports the version format
+/// ```ignore
+/// major.minor.patch
+/// ```
+/// and 3 special formats represented by the [`SpecialVersion`] enum.
+///
+/// A version can be created with one of the methods [`RustVersion::new`] or
+/// [`RustVersion::parse`]. The [`RustVersion::new`] method only supports the
+/// normal version format.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum RustVersion {
     Normal { major: u32, minor: u32, patch: u32 },
     Special(SpecialVersion),
 }
 
+/// `SpecialVersion` represents a special version from the first releases.
+///
+/// Before Rust 1.0.0, there were two alpha and one beta release, namely
+///
+/// - `1.0.0-alpha`
+/// - `1.0.0-alpha.2`
+/// - `1.0.0-beta`
+///
+/// This enum represents those releases.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum SpecialVersion {
     Alpha,
@@ -143,6 +169,23 @@ const ACCEPTED_SPECIAL_VERSIONS: [(&str, SpecialVersion); 3] = [
 ];
 
 impl RustVersion {
+    /// `RustVersion::new` is a `const` constructor for a `RustVersion`.
+    ///
+    /// This function is primarily used to construct constants, for everything
+    /// else use [`RustVersion::parse`].
+    ///
+    /// This function only allows to construct normal versions. For special
+    /// versions, construct them directly from the [`SpecialVersion`] enum.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rust_version::RustVersion;
+    ///
+    /// const MY_FAVORITE_RUST: RustVersion = RustVersion::new(1, 48, 0);
+    ///
+    /// assert!(MY_FAVORITE_RUST > RustVersion::new(1, 0, 0))
+    /// ```
     pub const fn new(major: u32, minor: u32, patch: u32) -> Self {
         Self::Normal {
             major,
@@ -151,6 +194,33 @@ impl RustVersion {
         }
     }
 
+    /// `RustVersion::parse` parses a [`RustVersion`].
+    ///
+    /// This function can parse all normal and special versions. It is possbile
+    /// to omit parts of the version, like the patch or minor version part. So
+    /// `1`, `1.0`, and `1.0.0` are all valid inputs and will result in the
+    /// same version.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an [`Error`], if the passed string is not a valid
+    /// [`RustVersion`]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rust_version::{SpecialVersion, RustVersion};
+    ///
+    /// let ver = RustVersion::new(1, 0, 0);
+    ///
+    /// assert_eq!(RustVersion::parse("1").unwrap(), ver);
+    /// assert_eq!(RustVersion::parse("1.0").unwrap(), ver);
+    /// assert_eq!(RustVersion::parse("1.0.0").unwrap(), ver);
+    /// assert_eq!(
+    ///     RustVersion::parse("1.0.0-alpha").unwrap(),
+    ///     RustVersion::Special(SpecialVersion::Alpha)
+    /// );
+    /// ```
     pub fn parse(version: &str) -> Result<Self> {
         let special_version = ACCEPTED_SPECIAL_VERSIONS.iter().find_map(|sv| {
             if version == sv.0 {
