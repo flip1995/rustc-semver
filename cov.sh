@@ -4,7 +4,7 @@ rm -rf cov/*
 
 RUSTFLAGS="-Zinstrument-coverage" \
 LLVM_PROFILE_FILE="$(pwd)/cov/rustc-semver%m.profraw" \
-    cargo +nightly test > /dev/null 2>&1
+    cargo +nightly test
 
 llvm-profdata merge -sparse cov/rustc-semver*.profraw -o cov/rustc-semver.profdata
 
@@ -14,10 +14,10 @@ case $1 in
             --instr-profile=cov/rustc-semver.profdata \
             --summary-only \
             --format=text \
-            $(find target/debug/deps -executable -type f)
+            $(find target/debug/deps -executable -type f) | python3 -m json.tool > cov.json
         ;;
     "--html")
-        cargo install rustfilt > /dev/null 2>&1
+        cargo install rustfilt
         llvm-cov show \
             --instr-profile=cov/rustc-semver.profdata \
             --Xdemangler=rustfilt \

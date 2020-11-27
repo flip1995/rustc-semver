@@ -1,0 +1,32 @@
+name: Coverage
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  coverage:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: rust-toolchain
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        profile: minimal
+
+    - name: Install LLVM tools
+      run: |
+        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+        sudo ln -s /usr/bin/llvm-cov-11 /usr/bin/llvm-cov
+        sudo ln -s /usr/bin/llvm-profdata-11 /usr/bin/llvm-profdata
+
+    - name: Check Coverage
+      run: |
+        sh cov.sh --json
+        python3 .github/coverage.py cov.json
