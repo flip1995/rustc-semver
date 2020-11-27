@@ -1,4 +1,5 @@
 [![Coverage](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=coverage&query=%24.data%5B0%5D.totals.lines.percent&suffix=%25&url=https%3A%2F%2Fraw.githubusercontent.com%2Fflip1995%2Frustc-semver%2Fgh-pages%2Fcov.json)](https://flip1995.github.io/rustc-semver/)
+[![Tests](https://github.com/flip1995/rustc-semver/workflows/Tests/badge.svg)](https://github.com/flip1995/rustc-semver/actions?query=branch%3Amaster+event%3Apush+workflow%3ATests)
 
 # Rustc Semver
 
