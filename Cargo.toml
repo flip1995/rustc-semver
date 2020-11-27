@@ -1,7 +1,7 @@
 [package]
 name = "rustc-semver"
 description = "Crate for parsing versions of Rust releases"
-version = "0.1.1"
+version = "1.0.0"
 authors = ["flip1995 <hello@philkrones.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
