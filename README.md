@@ -1,3 +1,5 @@
+[![Coverage](https://flip1995.github.io/rustc-semver/)](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=coverage&query=%24.data%5B0%5D.totals.lines.percent&suffix=%25&url=https%3A%2F%2Fraw.githubusercontent.com%2Fflip1995%2Frustc-semver%2Fgh-pages%2Fcov.json)
+
 # Rustc Semver
 
 This crate provides a parser for Rust versions.
