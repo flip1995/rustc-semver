@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: rust-toolchain
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        profile: minimal
+
+    - name: Install LLVM tools
+      run: |
+        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+        sudo ln -s /usr/bin/llvm-cov-11 /usr/bin/llvm-cov
+        sudo ln -s /usr/bin/llvm-profdata-11 /usr/bin/llvm-profdata
+
+    - name: Generate Coverage
+      run: |
+        sh cov.sh --json
+        sh cov.sh --html
+
+    - name: Move to Deploy Directory
+      run: |
+        mkdir out
+        mv cov.json out/cov.json
+        mv cov/rustc-semver/* out/
+
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@3.4.1
+      with:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
+        BRANCH: gh-pages
+        FOLDER: out
+        TARGET_FOLDER: '.'
+        COMMIT_MESSAGE: 'Automatic deploy of coverage'
+        GIT_CONFIG_NAME: GHA
+        GIT_CONFIG_EMAIL: gha@github.com
