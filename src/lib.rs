@@ -140,39 +140,31 @@ impl Display for RustcVersion {
                 major,
                 minor,
                 patch,
-            }) => write!(f, "{}.{}.{}", major, minor, patch)?,
-            Self::Special(special) => write!(f, "{}", special)?,
+            }) => write!(f, "{}.{}.{}", major, minor, patch),
+            Self::Special(special) => write!(f, "{}", special),
         }
-
-        Ok(())
     }
 }
 
 impl Display for SpecialVersion {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Alpha => write!(f, "1.0.0-alpha")?,
-            Self::Alpha2 => write!(f, "1.0.0-alpha.2")?,
-            Self::Beta => write!(f, "1.0.0-beta")?,
+            Self::Alpha => write!(f, "1.0.0-alpha"),
+            Self::Alpha2 => write!(f, "1.0.0-alpha.2"),
+            Self::Beta => write!(f, "1.0.0-beta"),
         }
-
-        Ok(())
     }
 }
 
 impl TryFrom<[u32; 3]> for RustcVersion {
     type Error = Error;
 
-    fn try_from(vec: [u32; 3]) -> Result<Self> {
-        if vec.len() > 3 {
-            Err(Error::TooManyElements)
-        } else {
-            Ok(Self::Normal(NormalVersion {
-                major: vec.get(0).copied().unwrap_or_default(),
-                minor: vec.get(1).copied().unwrap_or_default(),
-                patch: vec.get(2).copied().unwrap_or_default(),
-            }))
-        }
+    fn try_from(arr: [u32; 3]) -> Result<Self> {
+        Ok(Self::Normal(NormalVersion {
+            major: arr[0],
+            minor: arr[1],
+            patch: arr[2],
+        }))
     }
 }
 
@@ -356,6 +348,24 @@ mod test {
             RustcVersion::parse("1.48.1").unwrap(),
             RustcVersion::new(1, 48, 1)
         );
+        assert_eq!(
+            RustcVersion::parse("1.0.0-alpha")
+                .unwrap()
+                .cmp(&RustcVersion::Special(SpecialVersion::Alpha)),
+            Ordering::Equal
+        );
+        assert_eq!(
+            RustcVersion::parse("1.0.0-alpha.2")
+                .unwrap()
+                .cmp(&RustcVersion::Special(SpecialVersion::Alpha2)),
+            Ordering::Equal
+        );
+        assert_eq!(
+            RustcVersion::parse("1.0.0-beta")
+                .unwrap()
+                .cmp(&RustcVersion::Special(SpecialVersion::Beta)),
+            Ordering::Equal
+        );
     }
 
     #[test]
@@ -377,6 +387,10 @@ mod test {
             RustcVersion::parse("1.0.0-alpha.2").unwrap()
                 > RustcVersion::Special(SpecialVersion::Alpha)
         );
+        assert!(RustcVersion::parse("1.0.0-alpha.2").unwrap() > RustcVersion::new(0, 8, 0));
+        assert!(
+            RustcVersion::parse("1.45.2").unwrap() > RustcVersion::Special(SpecialVersion::Alpha2)
+        );
     }
 
     #[test]
@@ -394,5 +408,42 @@ mod test {
             RustcVersion::parse(" 1  . \t 3.\r 5").unwrap(),
             RustcVersion::new(1, 3, 5)
         );
+    }
+
+    #[test]
+    fn formatting() {
+        extern crate alloc;
+        use alloc::string::{String, ToString};
+        assert_eq!(
+            RustcVersion::new(1, 42, 28).to_string(),
+            String::from("1.42.28")
+        );
+        assert_eq!(
+            RustcVersion::Special(SpecialVersion::Alpha).to_string(),
+            String::from("1.0.0-alpha")
+        );
+        assert_eq!(
+            RustcVersion::Special(SpecialVersion::Alpha2).to_string(),
+            String::from("1.0.0-alpha.2")
+        );
+        assert_eq!(
+            RustcVersion::Special(SpecialVersion::Beta).to_string(),
+            String::from("1.0.0-beta")
+        );
+    }
+
+    #[test]
+    fn too_many_elements() {
+        assert_eq!(
+            RustcVersion::parse("1.0.0.100"),
+            Err(Error::TooManyElements)
+        );
+    }
+
+    #[test]
+    fn alpha_numeric_version() {
+        assert_eq!(RustcVersion::parse("a.0.1"), Err(Error::ParseIntError));
+        assert_eq!(RustcVersion::parse("2.x.1"), Err(Error::ParseIntError));
+        assert_eq!(RustcVersion::parse("0.2.s"), Err(Error::NotASpecialVersion));
     }
 }
