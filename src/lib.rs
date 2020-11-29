@@ -520,15 +520,13 @@ mod test {
 
     #[test]
     fn edge_cases() {
-        assert_eq!(RustcVersion::parse("").unwrap(), RustcVersion::new(0, 0, 0));
-        assert_eq!(
-            RustcVersion::parse(" ").unwrap(),
-            RustcVersion::new(0, 0, 0)
-        );
-        assert_eq!(
-            RustcVersion::parse("\t").unwrap(),
-            RustcVersion::new(0, 0, 0)
-        );
+        assert_eq!(RustcVersion::parse(""), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse(" "), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse("\t"), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse("1."), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse("1. "), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse("1.\t"), Err(Error::EmptyVersionPart));
+        assert_eq!(RustcVersion::parse("1. \t.3"), Err(Error::EmptyVersionPart));
         assert_eq!(
             RustcVersion::parse(" 1  . \t 3.\r 5").unwrap(),
             RustcVersion::new(1, 3, 5)
