@@ -40,6 +40,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN  }}
         publish_dir: ./out
-        user_name: "gha"
+        user_name: "GHA"
         user_email: "gha@users.noreply.github.com"
         commit_message: "Automatic deploy of coverage report"
