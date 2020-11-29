@@ -67,11 +67,32 @@ pub enum RustcVersion {
 /// ```test
 /// major.minor.patch
 /// ```
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct NormalVersion {
     major: u32,
     minor: u32,
     patch: u32,
+    omitted: OmittedParts,
+}
+
+#[derive(Debug, Copy, Clone)]
+enum OmittedParts {
+    None,
+    Minor,
+    Patch,
+}
+
+impl From<usize> for OmittedParts {
+    fn from(parts: usize) -> Self {
+        match parts {
+            1 => Self::Minor,
+            2 => Self::Patch,
+            3 => Self::None,
+            _ => unreachable!(
+                "This function should never be called with `parts == 0` or `parts > 3`"
+            ),
+        }
+    }
 }
 
 /// `SpecialVersion` represents a special version from the first releases.
@@ -99,24 +120,7 @@ impl PartialOrd for RustcVersion {
 impl Ord for RustcVersion {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (
-                Self::Normal(NormalVersion {
-                    major,
-                    minor,
-                    patch,
-                }),
-                Self::Normal(NormalVersion {
-                    major: o_major,
-                    minor: o_minor,
-                    patch: o_patch,
-                }),
-            ) => match major.cmp(&o_major) {
-                Ordering::Equal => match minor.cmp(&o_minor) {
-                    Ordering::Equal => patch.cmp(&o_patch),
-                    ord => ord,
-                },
-                ord => ord,
-            },
+            (Self::Normal(ver), Self::Normal(o_ver)) => ver.cmp(o_ver),
             (Self::Normal(NormalVersion { major, .. }), Self::Special(_)) => {
                 if *major >= 1 {
                     Ordering::Greater
@@ -135,6 +139,32 @@ impl Ord for RustcVersion {
         }
     }
 }
+
+impl PartialOrd for NormalVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for NormalVersion {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.major.cmp(&other.major) {
+            Ordering::Equal => match self.minor.cmp(&other.minor) {
+                Ordering::Equal => self.patch.cmp(&other.patch),
+                ord => ord,
+            },
+            ord => ord,
+        }
+    }
+}
+
+impl PartialEq for NormalVersion {
+    fn eq(&self, other: &Self) -> bool {
+        self.major == other.major && self.minor == other.minor && self.patch == other.patch
+    }
+}
+
+impl Eq for NormalVersion {}
 
 impl PartialOrd for SpecialVersion {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -161,6 +191,7 @@ impl Display for RustcVersion {
                 major,
                 minor,
                 patch,
+                ..
             }) => write!(f, "{}.{}.{}", major, minor, patch),
             Self::Special(special) => write!(f, "{}", special),
         }
@@ -183,6 +214,7 @@ impl From<[u32; 3]> for NormalVersion {
             major: arr[0],
             minor: arr[1],
             patch: arr[2],
+            omitted: OmittedParts::None,
         }
     }
 }
@@ -216,6 +248,7 @@ impl RustcVersion {
             major,
             minor,
             patch,
+            omitted: OmittedParts::None,
         })
     }
 
@@ -259,6 +292,7 @@ impl RustcVersion {
         }
 
         let mut rustc_version = [0_u32; 3];
+        let mut parts = 0;
         for (i, part) in version.split('.').enumerate() {
             let part = part.trim();
             if part.is_empty() {
@@ -277,9 +311,12 @@ impl RustcVersion {
                     }
                 }
             }
+
+            parts = i + 1;
         }
 
-        let ver = NormalVersion::from(rustc_version);
+        let mut ver = NormalVersion::from(rustc_version);
+        ver.omitted = OmittedParts::from(parts);
         Ok(RustcVersion::Normal(ver))
     }
 }
