@@ -37,6 +37,23 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// A version can be created with one of the functions [`RustcVersion::new`] or
 /// [`RustcVersion::parse`]. The [`RustcVersion::new`] method only supports the
 /// normal version format.
+///
+/// You can compare two versions, just as you would expect:
+///
+/// ```rust
+/// use rustc_semver::RustcVersion;
+///
+/// assert!(RustcVersion::new(1, 34, 0) > RustcVersion::parse("1.10").unwrap());
+/// assert!(RustcVersion::new(1, 34, 0) > RustcVersion::parse("0.9").unwrap());
+/// ```
+///
+/// This comparison is semver conform according to the [semver definition of
+/// precedence]. However, if you want to check whether one version meets
+/// another version according to the [Caret Requirements], you should use
+/// [`RustcVersion::meets`].
+///
+/// [Caret Requirements]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#caret-requirements
+/// [semver definition of precedence]: https://semver.org/#spec-item-11
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum RustcVersion {
     Normal(NormalVersion),
@@ -183,7 +200,7 @@ impl RustcVersion {
     /// else use [`RustcVersion::parse`].
     ///
     /// This function only allows to construct normal versions. For special
-    /// versions, construct them directly from the [`SpecialVersion`] enum.
+    /// versions, construct them directly with the [`SpecialVersion`] enum.
     ///
     /// # Examples
     ///
