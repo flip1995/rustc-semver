@@ -319,6 +319,73 @@ impl RustcVersion {
         ver.omitted = OmittedParts::from(parts);
         Ok(RustcVersion::Normal(ver))
     }
+
+    /// `RustcVersion::meets` implements a semver conform version check
+    /// according to the [Caret Requirements].
+    ///
+    /// Note that [`SpecialVersion`]s only meet themself and no other version
+    /// meets a [`SpecialVersion`]. This is because [according to semver],
+    /// special versions are considered unstable and "might not satisfy the
+    /// intended compatibility requirements as denoted by \[their\] associated
+    /// normal version".
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rustc_semver::RustcVersion;
+    ///
+    /// assert!(RustcVersion::new(1, 30, 0).meets(RustcVersion::parse("1.29").unwrap()));
+    /// assert!(!RustcVersion::new(1, 30, 0).meets(RustcVersion::parse("1.31").unwrap()));
+    ///
+    /// assert!(RustcVersion::new(0, 2, 1).meets(RustcVersion::parse("0.2").unwrap()));
+    /// assert!(!RustcVersion::new(0, 3, 0).meets(RustcVersion::parse("0.2").unwrap()));
+    /// ```
+    ///
+    /// [Caret Requirements]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#caret-requirements
+    /// [according to semver]: https://semver.org/#spec-item-9
+    pub fn meets(self, other: Self) -> bool {
+        match (self, other) {
+            (RustcVersion::Special(_), _) | (_, RustcVersion::Special(_)) => self == other,
+            (RustcVersion::Normal(ver), RustcVersion::Normal(o_ver)) => {
+                // In any case must `self` be bigger than `other`, with the major part matching
+                // the other version.
+                let mut meets = ver >= o_ver && ver.major == o_ver.major;
+
+                // In addition, the left-most non-zero digit must not be modified.
+                match o_ver.omitted {
+                    OmittedParts::None => {
+                        // Nothing was omitted, this means that everything must match in case of
+                        // leading zeros.
+                        if o_ver.major == 0 {
+                            // Leading 0 in major position, check for
+                            // `self.minor == other.minor`
+                            meets &= ver.minor == o_ver.minor;
+
+                            if o_ver.minor == 0 {
+                                // Leading 0 in minor position, check for
+                                // `self.patch == other.patch`.
+                                meets &= ver.patch == o_ver.patch;
+                            }
+                        }
+                    }
+                    OmittedParts::Patch => {
+                        // The patch version was omitted, this means the patch version of `self`
+                        // does not have to match the patch version of `other`.
+                        if o_ver.major == 0 {
+                            meets &= ver.minor == o_ver.minor;
+                        }
+                    }
+                    OmittedParts::Minor => {
+                        // The minor (and patch) version was omitted, this means
+                        // the minor and patch version of `self` do not have to
+                        // match the minor and patch version of `other`
+                    }
+                }
+
+                meets
+            }
+        }
+    }
 }
 
 #[cfg(test)]
