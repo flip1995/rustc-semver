@@ -569,4 +569,97 @@ mod test {
         assert_eq!(RustcVersion::parse("2.x.1"), Err(Error::ParseIntError));
         assert_eq!(RustcVersion::parse("0.2.s"), Err(Error::NotASpecialVersion));
     }
+
+    #[test]
+    fn meets_full() {
+        // Nothing was omitted
+        assert!(RustcVersion::new(1, 2, 3).meets(RustcVersion::new(1, 2, 3)));
+        assert!(RustcVersion::new(1, 2, 5).meets(RustcVersion::new(1, 2, 3)));
+        assert!(RustcVersion::new(1, 3, 0).meets(RustcVersion::new(1, 2, 3)));
+        assert!(!RustcVersion::new(2, 0, 0).meets(RustcVersion::new(1, 2, 3)));
+        assert!(!RustcVersion::new(0, 9, 0).meets(RustcVersion::new(1, 0, 0)));
+
+        assert!(RustcVersion::new(0, 2, 3).meets(RustcVersion::new(0, 2, 3)));
+        assert!(RustcVersion::new(0, 2, 5).meets(RustcVersion::new(0, 2, 3)));
+        assert!(!RustcVersion::new(0, 3, 0).meets(RustcVersion::new(0, 2, 3)));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::new(0, 2, 3)));
+
+        assert!(RustcVersion::new(0, 0, 3).meets(RustcVersion::new(0, 0, 3)));
+        assert!(!RustcVersion::new(0, 0, 5).meets(RustcVersion::new(0, 0, 3)));
+        assert!(!RustcVersion::new(0, 1, 0).meets(RustcVersion::new(0, 0, 3)));
+
+        assert!(RustcVersion::new(0, 0, 0).meets(RustcVersion::new(0, 0, 0)));
+        assert!(!RustcVersion::new(0, 0, 1).meets(RustcVersion::new(0, 0, 0)));
+    }
+
+    #[test]
+    fn meets_no_patch() {
+        // Patch was omitted
+        assert!(RustcVersion::new(1, 2, 0).meets(RustcVersion::parse("1.2").unwrap()));
+        assert!(RustcVersion::new(1, 2, 5).meets(RustcVersion::parse("1.2").unwrap()));
+        assert!(RustcVersion::new(1, 3, 0).meets(RustcVersion::parse("1.2").unwrap()));
+        assert!(!RustcVersion::new(2, 0, 0).meets(RustcVersion::parse("1.2").unwrap()));
+        assert!(!RustcVersion::new(0, 9, 0).meets(RustcVersion::parse("1.0").unwrap()));
+
+        assert!(RustcVersion::new(0, 2, 0).meets(RustcVersion::parse("0.2").unwrap()));
+        assert!(RustcVersion::new(0, 2, 5).meets(RustcVersion::parse("0.2").unwrap()));
+        assert!(!RustcVersion::new(0, 3, 0).meets(RustcVersion::parse("0.2").unwrap()));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::parse("0.2").unwrap()));
+
+        assert!(RustcVersion::new(0, 0, 0).meets(RustcVersion::parse("0.0").unwrap()));
+        assert!(RustcVersion::new(0, 0, 5).meets(RustcVersion::parse("0.0").unwrap()));
+        assert!(!RustcVersion::new(0, 1, 0).meets(RustcVersion::parse("0.0").unwrap()));
+    }
+
+    #[test]
+    fn meets_no_minor() {
+        // Minor was omitted
+        assert!(RustcVersion::new(1, 0, 0).meets(RustcVersion::parse("1").unwrap()));
+        assert!(RustcVersion::new(1, 3, 0).meets(RustcVersion::parse("1").unwrap()));
+        assert!(!RustcVersion::new(2, 0, 0).meets(RustcVersion::parse("1").unwrap()));
+        assert!(!RustcVersion::new(0, 9, 0).meets(RustcVersion::parse("1").unwrap()));
+
+        assert!(RustcVersion::new(0, 0, 0).meets(RustcVersion::parse("0").unwrap()));
+        assert!(RustcVersion::new(0, 0, 1).meets(RustcVersion::parse("0").unwrap()));
+        assert!(RustcVersion::new(0, 2, 5).meets(RustcVersion::parse("0").unwrap()));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::parse("0").unwrap()));
+    }
+
+    #[test]
+    fn meets_special() {
+        assert!(RustcVersion::Special(SpecialVersion::Alpha)
+            .meets(RustcVersion::Special(SpecialVersion::Alpha)));
+        assert!(RustcVersion::Special(SpecialVersion::Alpha2)
+            .meets(RustcVersion::Special(SpecialVersion::Alpha2)));
+        assert!(RustcVersion::Special(SpecialVersion::Beta)
+            .meets(RustcVersion::Special(SpecialVersion::Beta)));
+        assert!(!RustcVersion::Special(SpecialVersion::Alpha)
+            .meets(RustcVersion::Special(SpecialVersion::Alpha2)));
+        assert!(!RustcVersion::Special(SpecialVersion::Alpha)
+            .meets(RustcVersion::Special(SpecialVersion::Beta)));
+        assert!(!RustcVersion::Special(SpecialVersion::Alpha2)
+            .meets(RustcVersion::Special(SpecialVersion::Beta)));
+        assert!(!RustcVersion::Special(SpecialVersion::Alpha).meets(RustcVersion::new(1, 0, 0)));
+        assert!(!RustcVersion::Special(SpecialVersion::Alpha2).meets(RustcVersion::new(1, 0, 0)));
+        assert!(!RustcVersion::Special(SpecialVersion::Beta).meets(RustcVersion::new(1, 0, 0)));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::Special(SpecialVersion::Alpha)));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::Special(SpecialVersion::Alpha2)));
+        assert!(!RustcVersion::new(1, 0, 0).meets(RustcVersion::Special(SpecialVersion::Beta)));
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "This function should never be called with `parts == 0` or `parts > 3`"
+    )]
+    fn omitted_parts_with_zero() {
+        OmittedParts::from(0);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "This function should never be called with `parts == 0` or `parts > 3`"
+    )]
+    fn omitted_parts_with_four() {
+        OmittedParts::from(4);
+    }
 }
