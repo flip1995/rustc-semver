@@ -1,5 +1,6 @@
 #![no_std]
-use core::{cmp::Ordering, convert::TryFrom, fmt::Display, num::ParseIntError};
+
+use core::{cmp::Ordering, fmt::Display, num::ParseIntError};
 
 /// `Error` represents an Error during parsing of a [`RustcVersion`].
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -156,15 +157,13 @@ impl Display for SpecialVersion {
     }
 }
 
-impl TryFrom<[u32; 3]> for RustcVersion {
-    type Error = Error;
-
-    fn try_from(arr: [u32; 3]) -> Result<Self> {
-        Ok(Self::Normal(NormalVersion {
+impl From<[u32; 3]> for NormalVersion {
+    fn from(arr: [u32; 3]) -> Self {
+        NormalVersion {
             major: arr[0],
             minor: arr[1],
             patch: arr[2],
-        }))
+        }
     }
 }
 
@@ -259,7 +258,9 @@ impl RustcVersion {
                 }
             }
         }
-        RustcVersion::try_from(rustc_version)
+
+        let ver = NormalVersion::from(rustc_version);
+        Ok(RustcVersion::Normal(ver))
     }
 }
 
