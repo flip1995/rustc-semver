@@ -6,50 +6,50 @@
                     "filename": "src/lib.rs",
                     "summary": {
                         "functions": {
-                            "count": 33,
-                            "covered": 33,
+                            "count": 45,
+                            "covered": 45,
                             "percent": 100
                         },
                         "instantiations": {
-                            "count": 33,
-                            "covered": 33,
+                            "count": 45,
+                            "covered": 45,
                             "percent": 100
                         },
                         "lines": {
-                            "count": 333,
-                            "covered": 333,
+                            "count": 497,
+                            "covered": 497,
                             "percent": 100
                         },
                         "regions": {
-                            "count": 138,
-                            "covered": 138,
-                            "notcovered": 0,
-                            "percent": 100
+                            "count": 237,
+                            "covered": 235,
+                            "notcovered": 2,
+                            "percent": 99.15611814345992
                         }
                     }
                 }
             ],
             "totals": {
                 "functions": {
-                    "count": 33,
-                    "covered": 33,
+                    "count": 45,
+                    "covered": 45,
                     "percent": 100
                 },
                 "instantiations": {
-                    "count": 33,
-                    "covered": 33,
+                    "count": 45,
+                    "covered": 45,
                     "percent": 100
                 },
                 "lines": {
-                    "count": 333,
-                    "covered": 333,
+                    "count": 497,
+                    "covered": 497,
                     "percent": 100
                 },
                 "regions": {
-                    "count": 138,
-                    "covered": 138,
-                    "notcovered": 0,
-                    "percent": 100
+                    "count": 237,
+                    "covered": 235,
+                    "notcovered": 2,
+                    "percent": 99.15611814345992
                 }
             }
         }
