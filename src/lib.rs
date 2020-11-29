@@ -10,6 +10,9 @@ pub enum Error {
     /// A version was passed that neither is a [`SpecialVersion`], nor a
     /// normal [`RustcVersion`].
     NotASpecialVersion,
+    /// A version was passed, that was either an empty string or a part of the
+    /// version was left out, e.g. `1.  .3`
+    EmptyVersionPart,
     /// A version was passed that has unallowed chracters.
     ParseIntError,
 }
@@ -242,7 +245,7 @@ impl RustcVersion {
         for (i, part) in version.split('.').enumerate() {
             let part = part.trim();
             if part.is_empty() {
-                break;
+                return Err(Error::EmptyVersionPart);
             }
             if i == 3 {
                 return Err(Error::TooManyElements);
