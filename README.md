@@ -3,34 +3,47 @@
 
 # Rustc Semver
 
-This crate provides a parser for Rust versions.
+This crate provides a minimalistic parser for Rust versions.
 
 ## Description
 
 The parser will only accept Versions in the form
-```
+
+```text
 <major>.<minor>.<patch>
 ```
+
 and 3 special versions:
 
 - `1.0.0-alpha`
 - `1.0.0-alpha.2`
 - `1.0.0-beta`
 
+This covers every version of `rustc` that were released to date.
+
 ## Usage
 
-There are only 2 functions to create a `RustVersion`:
+There are 2 functions to create a `RustcVersion`:
 
-1. `const RustVersion::new(u32, u32, u32)`: This is mainly used to create
+1. `const RustcVersion::new(u32, u32, u32)`: This is mainly used to create
    constants
-2. `RustVersion::parse(&str)`: Usually you want to parse a version with this
+2. `RustcVersion::parse(&str)`: Usually you want to parse a version with this
    function
 
-If you have a `RustVersion` you can compare them, like you would expect:
+If you have a `RustcVersion` you can compare them, like you would expect:
 
+```rust
+assert!(RustcVersion::parse("1.42.0")? < RustcVersion::parse("1.43")?);
 ```
-assert!(RustVersion::parse("1.42.0")? < RustVersion::parse("1.43")?);
+
+If you want to check whether one version meets another version according to the
+[Caret Requirements], there is the method `RustcVersion::meets`:
+
+```rust
+assert!(RustcVersion::new(1, 48, 0).meets(RustcVersion::parse("1.42")?));
 ```
+
+[Caret Requirements]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#caret-requirements
 
 ## Code of Conduct
 

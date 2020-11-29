@@ -9,6 +9,6 @@ merge_imports = true
 error_on_line_overflow = true
 # Error if unable to get comments or string literals within `max_width`, or
 # they are left with trailing whitespaces.
-error_on_unformatted = true
+error_on_unformatted = false
 # Specifies which edition is used by the parser.
 edition = "2018"
