@@ -3,53 +3,65 @@
         {
             "files": [
                 {
-                    "filename": "src/lib.rs",
+                    "filename": "/home/runner/work/rustc-semver/rustc-semver/src/lib.rs",
                     "summary": {
+                        "branches": {
+                            "count": 0,
+                            "covered": 0,
+                            "notcovered": 0,
+                            "percent": 0
+                        },
                         "functions": {
-                            "count": 45,
-                            "covered": 45,
-                            "percent": 100
+                            "count": 60,
+                            "covered": 49,
+                            "percent": 81.66666666666667
                         },
                         "instantiations": {
-                            "count": 45,
-                            "covered": 45,
-                            "percent": 100
+                            "count": 61,
+                            "covered": 49,
+                            "percent": 80.32786885245902
                         },
                         "lines": {
-                            "count": 497,
-                            "covered": 497,
-                            "percent": 100
+                            "count": 394,
+                            "covered": 381,
+                            "percent": 96.7005076142132
                         },
                         "regions": {
-                            "count": 237,
-                            "covered": 235,
-                            "notcovered": 2,
-                            "percent": 99.15611814345992
+                            "count": 234,
+                            "covered": 219,
+                            "notcovered": 15,
+                            "percent": 93.58974358974359
                         }
                     }
                 }
             ],
             "totals": {
+                "branches": {
+                    "count": 0,
+                    "covered": 0,
+                    "notcovered": 0,
+                    "percent": 0
+                },
                 "functions": {
-                    "count": 45,
-                    "covered": 45,
-                    "percent": 100
+                    "count": 60,
+                    "covered": 49,
+                    "percent": 81.66666666666667
                 },
                 "instantiations": {
-                    "count": 45,
-                    "covered": 45,
-                    "percent": 100
+                    "count": 61,
+                    "covered": 49,
+                    "percent": 80.32786885245902
                 },
                 "lines": {
-                    "count": 497,
-                    "covered": 497,
-                    "percent": 100
+                    "count": 394,
+                    "covered": 381,
+                    "percent": 96.7005076142132
                 },
                 "regions": {
-                    "count": 237,
-                    "covered": 235,
-                    "notcovered": 2,
-                    "percent": 99.15611814345992
+                    "count": 234,
+                    "covered": 219,
+                    "notcovered": 15,
+                    "percent": 93.58974358974359
                 }
             }
         }
