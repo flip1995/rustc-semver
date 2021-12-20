@@ -652,7 +652,7 @@ mod test {
         expected = "This function should never be called with `parts == 0` or `parts > 3`"
     )]
     fn omitted_parts_with_zero() {
-        OmittedParts::from(0);
+        let _ = OmittedParts::from(0);
     }
 
     #[test]
@@ -660,6 +660,6 @@ mod test {
         expected = "This function should never be called with `parts == 0` or `parts > 3`"
     )]
     fn omitted_parts_with_four() {
-        OmittedParts::from(4);
+        let _ = OmittedParts::from(4);
     }
 }
