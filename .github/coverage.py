@@ -12,7 +12,7 @@ def main():
 
     line_coverage = cov["data"][0]["totals"]["lines"]["percent"]
 
-    if line_coverage == 100:
+    if line_coverage > 95:
         exit(0)
     else:
         exit(1)
