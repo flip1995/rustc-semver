@@ -21,8 +21,8 @@ jobs:
     - name: Install LLVM tools
       run: |
         sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-        sudo ln -s /usr/bin/llvm-cov-11 /usr/bin/llvm-cov
-        sudo ln -s /usr/bin/llvm-profdata-11 /usr/bin/llvm-profdata
+        sudo ln -s /usr/bin/llvm-cov-13 /usr/bin/llvm-cov
+        sudo ln -s /usr/bin/llvm-profdata-13 /usr/bin/llvm-profdata
 
     - name: Generate Coverage
       run: |
@@ -40,6 +40,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN  }}
         publish_dir: ./out
-        user_name: "GHA"
+        user_name: "GHA CI"
         user_email: "gha@users.noreply.github.com"
         commit_message: "Automatic deploy of coverage report"
