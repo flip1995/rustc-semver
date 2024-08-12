@@ -5,6 +5,14 @@
 
 This crate provides a minimalistic parser for Rust versions.
 
+## Archive Note
+
+This crate was mainly used in Clippy. But since then, a rustc implementation
+has been created. Clippy moved to that in [rust-clippy#13243][PR], so this crate
+will no longer be maintained.
+
+[PR]: https://github.com/rust-lang/rust-clippy/pull/13243
+
 ## Description
 
 The parser will only accept Versions in the form
